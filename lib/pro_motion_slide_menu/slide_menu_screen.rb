@@ -1,5 +1,5 @@
 module ProMotionSlideMenu
-  class SlideMenuScreen < PKRevealController
+  class SlideMenuScreen < ECSlidingViewController
 
     include ::ProMotion::ScreenModule
 
@@ -13,7 +13,7 @@ module ProMotionSlideMenu
     #
 
     def self.new(content, options={})
-      screen = self.revealControllerWithFrontViewController(nil, leftViewController: nil, options: nil)
+      screen = self.slidingWithTopViewController(nil)
       screen.content_controller = content unless content.nil?
       screen.left_controller = options[:left] if options[:left]
       screen.right_controller = options[:right] if options[:right]
@@ -28,21 +28,21 @@ module ProMotionSlideMenu
     end
 
     def show_left(animated = true)
-      self.showViewController left_controller, animated: animated, completion: default_completion_block
+      self.anchorTopViewToLeftAnimated animated, onComplete: default_completion_block
     end
 
     def show_right(animated = true)
-      self.showViewController right_controller, animated: animated, completion: default_completion_block
+      self.anchorTopViewToRightAnimated animated, onComplete: default_completion_block
     end
 
     def hide(animated = true)
-      self.showViewController content_controller, animated: animated, completion: default_completion_block
+      self.resetTopViewAnimated animated, onComplete: default_completion_block
     end
 
     def left_controller=(c)
       controller = prepare_controller_for_pm(c)
       controller = controller.navigationController || controller
-      self.setLeftViewController controller, focusAfterChange: true, completion: default_completion_block
+      self.underLeftViewController = controller
     end
 
     def left_controller
@@ -52,21 +52,21 @@ module ProMotionSlideMenu
     def right_controller=(c)
       controller = prepare_controller_for_pm(c)
       controller = controller.navigationController || controller
-      self.setRightViewController controller, focusAfterChange: true, completion: default_completion_block
+      self.underRightViewController = controller
     end
 
     def right_controller
-      self.rightViewController
+      self.underRightViewController
     end
 
     def content_controller=(c)
       controller = prepare_controller_for_pm(c)
       controller = controller.navigationController || controller
-      self.setFrontViewController controller, focusAfterChange: true, completion: default_completion_block
+      self.topViewController = controller
     end
 
     def content_controller
-      self.frontViewController
+      self.topViewController
     end
 
     def controller=(side={})
@@ -92,7 +92,7 @@ module ProMotionSlideMenu
     end
 
     def default_completion_block
-      -> (completed) { true }
+      -> () { true }
     end
 
   end
